@@ -1,6 +1,8 @@
 package com.example.springSecurity.controller;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -9,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -79,14 +82,40 @@ public class SecurityUserController {
 		return "common/alertMsg";
 	}
 	
-	@ResponseBody
+//	@ResponseBody
 	@GetMapping("/loginSuccess")
-	public String loginSuccess() {
+	public String loginSuccess(HttpSession session) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		// 세션에 현재 사용자 아이디
 		String uid = authentication.getName();
+		SecurityUser securityUser = securityService.getUserByUid(uid);
+		session.setAttribute("sessUid", securityUser.getUid());
+		session.setAttribute("sessUname", securityUser.getUname());
 		
-		return "loginSuccess - " + uid;
+		return "redirect:/user/list/1";
+//		return "loginSuccess - " + uid;
 	}
 	
+	@GetMapping(value={"/list/{page}", "/list"})
+	public String list(@PathVariable(required=false) Integer page, Model model, 
+			HttpSession session) {	
+		page = (page == null) ? 1 : page;
+		int totalUserCount = securityService.getSecurityUserCount();
+		int totalPages = (int) Math.ceil(totalUserCount / (double) securityService.COUNT_PER_PAGE);
+		int startPage = (int) Math.ceil((page - 0.5) / securityService.COUNT_PER_PAGE - 1) * securityService.COUNT_PER_PAGE + 1;
+		int endPage = Math.min(totalPages, startPage + securityService.COUNT_PER_PAGE - 1);
+		List<Integer> pageList = new ArrayList<>();
+		for (int i = startPage; i <= endPage; i++)
+			pageList.add(i);
+
+		session.setAttribute("currentUserPage", page);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("startPage", startPage);
+		model.addAttribute("endPage", endPage);
+		model.addAttribute("pageList", pageList);
+		
+		List<SecurityUser> list = securityService.getSecurityUserList(page);
+		model.addAttribute("userList", list);
+		return "user/list";
+	}
 }
