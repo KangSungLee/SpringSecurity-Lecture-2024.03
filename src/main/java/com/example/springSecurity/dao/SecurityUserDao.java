@@ -23,7 +23,7 @@ public interface SecurityUserDao {
 	int getSecurityUserCount();
 	
 	@Insert("insert into securityUser values (#{uid}, #{pwd}, #{uname}, #{email},"
-			+ " default, default, #{picture}), #{procider}, default)")
+			+ " default, default, #{picture}, #{provider}, default)")
 	void insertSecurityUser(SecurityUser securityUser);
 	
 	@Update("update securityUser set pwd=#{pwd}, uname=#{uname}, email=#{email},"

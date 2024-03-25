@@ -21,7 +21,7 @@ public class SecurityConfig {
 					.dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
 					.requestMatchers("user/register",	// 로그인 없이 사용할수있는 목록
 							"/img/**", "/css/**", "/js/**", "/error/**").permitAll()	//** 모든것들
-					.requestMatchers("/admin/**").hasAuthority("ADMIN")	// 어드민만 사용할수있는 목록
+					.requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")	// 어드민만 사용할수있는 목록
 					.anyRequest().authenticated()
 			)
 			.formLogin(auth -> auth
@@ -32,7 +32,12 @@ public class SecurityConfig {
 					.defaultSuccessUrl("/user/loginSuccess", true) 		// 내가 로그인후 해야할 일, 예) 세션 세팅, 오늘의 메세지 등
 					.permitAll()
 			)
-		;
+			.logout(auth -> auth
+					.logoutUrl("/user/logout")		// 로그아웃으로 이동
+					.invalidateHttpSession(true) 	// 로그아웃시 세션 초기화
+					.deleteCookies("JSESSIONID") 	// 로그아웃시 쿠키 삭제
+					.logoutSuccessUrl("/user/login")// 로그아웃이 끝나고 로그인 페이지로 이동
+			);
 		
 		return http.build();
 	}
