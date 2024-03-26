@@ -47,28 +47,6 @@ public class FileController {
 		}
 		return null;
 	}
-
-	
-	
-	@GetMapping("/download/profile/{filename}")
-	public ResponseEntity<Resource> profile(@PathVariable String filename) {
-		Path path = Paths.get(uploadDir + "profile/" + filename);
-		try {
-			String contentType = Files.probeContentType(path);
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentDisposition(
-					ContentDisposition.builder("attachment")
-					 				  .filename(filename, StandardCharsets.UTF_8)
-					 				  .build()
-					);
-			headers.add(HttpHeaders.CONTENT_TYPE, contentType);
-			Resource resource = new InputStreamResource(Files.newInputStream(path));
-			return new ResponseEntity<>(resource, headers, HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 	
 	@ResponseBody
 	@PostMapping("/imageUpload")
@@ -81,14 +59,18 @@ public class FileController {
 			MultipartFile file = pair.getValue();
 			String filename = file.getOriginalFilename();
 			int idx = filename.lastIndexOf(".");
-			filename = System.currentTimeMillis() + filename.substring(idx);
+			String format = filename.substring(idx);
+			if (format.equals(".jfif"))
+				format = ".jpg";
+			filename = System.currentTimeMillis() + format;
 			String uploadPath = uploadDir + "image/" + filename;
 			try {
 				file.transferTo(new File(uploadPath));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			url = "/food/file/download/image/" + filename;
+			url = "/sbbs/file/download/image/" + filename;
+			System.out.println(url);
 		}
 		
 		String ajaxResponse = "<script>"
