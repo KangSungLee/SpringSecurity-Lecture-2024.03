@@ -21,3 +21,4 @@ public class Member {
 	private LocalDate regDate;
 	private String email;
 }
+
