@@ -25,10 +25,13 @@ import com.example.springSecurity.Service.SecurityUserService;
 import com.example.springSecurity.entity.SecurityUser;
 import com.example.springSecurity.util.AsideUtil;
 import com.example.springSecurity.util.ImageUtil;
+import com.fasterxml.jackson.core.StreamReadConstraints.Builder;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Slf4j
 @Controller
@@ -163,6 +166,40 @@ public class SecurityUserController {
 		
 		return jUser.toString();
 	}
+	
+	@PostMapping("update")
+	public String postMethodName(String picture, String uid, String uname, String pwd, String pwd2, 
+			String provider, String role, String email, MultipartHttpServletRequest req, Model model) {
+		String filename = null;
+		MultipartFile filePart = req.getFile("newProfile");
+		if (filePart.getContentType().contains("image")) {	
+			filename = filePart.getOriginalFilename();
+			String path = uploadDir + "profile/" + filename;
+			try {
+				filePart.transferTo(new File(path));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			filename = "/ss/file/download/profile/" + imageUtil.squareImage(uid, filename);
+		} else {
+			filename = picture;
+		}
+		
+		if (pwd.equals("") || !pwd.equals(pwd2)) {
+			model.addAttribute("msg", "패스워드 입력이 잘못되었습니다.");
+			model.addAttribute("url", "/ss/user/list/1");
+			return "common/alertMsg";
+		}
+		String hashedPwd = bCryptEncoder.encode(pwd);			
+		SecurityUser securityUser = SecurityUser.builder()
+									.uid(uid).uname(uname).pwd(hashedPwd).provider(provider)
+									.role(role).email(email).picture(filename).build();
+		securityService.updateSecurityUser(securityUser);
+		model.addAttribute("msg", "수정을 마쳤습니다.");
+		model.addAttribute("url", "/ss/user/list/1");	
+		return "common/alertMsg";
+	}
+	
 	
 	
 }

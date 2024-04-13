@@ -27,7 +27,7 @@ public interface SecurityUserDao {
 	void insertSecurityUser(SecurityUser securityUser);
 	
 	@Update("update securityUser set pwd=#{pwd}, uname=#{uname}, email=#{email},"
-			+ " picture=#{picture} where uid=#{uid}")
+			+ " picture=#{picture}, provider=#{provider}, role=#{role} where uid=#{uid}")
 	void updateSecurityUser(SecurityUser securityUser);
 	
 	@Update("update securityUser set isDeleted=1 where uid=#{uid}")
